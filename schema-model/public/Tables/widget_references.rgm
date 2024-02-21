@@ -1,0 +1,21 @@
+table "public"."widget_references" {
+  primaryKey = {
+    columns = [
+      "widget_id"
+    ]
+    name = "widget_references_pkey"
+    objectType = primaryKey
+  }
+  owner = postgres
+  columns = (
+    column "widget_id" {
+      type = integer
+      null = NOT NULL
+      generatedAsIdentity = BY DEFAULT
+    }
+    column "reference" {
+      type = text
+    }
+  )
+}
+

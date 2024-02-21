@@ -1,0 +1,22 @@
+view "public"."current_prices" {
+  text = """-
+SELECT wp.widget_id,
+    wp.price,
+    w.description
+   FROM (public.widgets w
+     JOIN public.widget_prices wp ON ((w.record_id = wp.widget_id)));
+"""
+  owner = postgres
+  columns = (
+    column "widget_id" {
+      type = "integer"
+    }
+    column "price" {
+      type = "real"
+    }
+    column "description" {
+      type = text
+    }
+  )
+}
+

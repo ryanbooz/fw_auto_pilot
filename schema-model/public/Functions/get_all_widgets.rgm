@@ -1,0 +1,17 @@
+function "public"."get_all_widgets()" {
+  text = """
+
+	SELECT w.record_id,
+           w.description,
+           wp.price
+	FROM widgets w INNER JOIN widget_prices wp 
+	ON wp.record_id = w.record_id
+
+"""
+  returnType = TABLE(record_id integer, description text, price real)
+  arguments = [
+  ]
+  language = sql
+  owner = postgres
+}
+

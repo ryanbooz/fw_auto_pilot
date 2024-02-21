@@ -18,16 +18,16 @@ mixed = true
 outOfOrder = true
 locations = [ "filesystem:migrations" ]
 validateMigrationNaming = true
-baselineVersion = "001_20230821140817"
+baselineVersion = "001_20240221160237"
 baselineOnMigrate = true
 
 [environments.development]
-url = "jdbc:postgresql://localhost:5432/widgetdev"
+url = "jdbc:postgresql://localhost:5434/widgetdev"
 schemas = [ "public" ]
 displayName = "Development database"
 
 [environments.shadow]
-url = "jdbc:postgresql://localhost:5432/widgetshadow"
+url = "jdbc:postgresql://localhost:5434/widgetshadow"
 schemas = [ "public" ]
 displayName = "Shadow database"
 provisioner = "clean"
@@ -38,7 +38,7 @@ schemas = [ "public" ]
 displayName = "Test"
 
 [environments.Prod]
-url = "jdbc:postgresql://localhost:5432/widgetprod"
+url = "jdbc:postgresql://localhost:5434/widgetprod"
 schemas = [ "public" ]
 displayName = "Production"
 

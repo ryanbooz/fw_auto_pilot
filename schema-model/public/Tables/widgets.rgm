@@ -1,0 +1,22 @@
+table "public"."widgets" {
+  primaryKey = {
+    columns = [
+      "record_id"
+    ]
+    name = "widgets_pkey"
+    objectType = primaryKey
+  }
+  owner = postgres
+  columns = (
+    column "record_id" {
+      type = integer
+      null = NOT NULL
+      generatedAsIdentity = BY DEFAULT
+    }
+    column "description" {
+      type = text
+      null = NOT NULL
+    }
+  )
+}
+

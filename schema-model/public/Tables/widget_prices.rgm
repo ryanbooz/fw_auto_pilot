@@ -1,0 +1,24 @@
+table "public"."widget_prices" {
+  primaryKey = {
+    columns = [
+      "record_id"
+    ]
+    name = "widget_prices_pkey"
+    objectType = primaryKey
+  }
+  owner = postgres
+  columns = (
+    column "record_id" {
+      type = integer
+      null = NOT NULL
+      generatedAsIdentity = BY DEFAULT
+    }
+    column "widget_id" {
+      type = integer
+    }
+    column "price" {
+      type = real
+    }
+  )
+}
+
