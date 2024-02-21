@@ -1,0 +1,23 @@
+procedure "public"."insert_data(integer, integer)" {
+  text = """
+
+INSERT INTO accounts VALUES (a);
+INSERT INTO account_roles VALUES (b);
+"""
+  arguments = <
+    {
+      name = a
+      type = integer
+      mode = IN
+    }
+
+    {
+      name = b
+      type = integer
+      mode = IN
+    }
+
+  >
+  language = sql
+}
+

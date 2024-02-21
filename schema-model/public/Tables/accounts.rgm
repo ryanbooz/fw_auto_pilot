@@ -1,0 +1,54 @@
+table "public"."accounts" {
+  primaryKey = {
+    columns = [
+      "user_id"
+    ]
+    name = "accounts_pkey"
+    objectType = primaryKey
+  }
+  columns = (
+    column "user_id" {
+      type = integer
+      null = NOT NULL
+      default = nextval('public.accounts_user_id_seq'::regclass)
+    }
+    column "username" {
+      type = character varying(50)
+      null = NOT NULL
+    }
+    column "password" {
+      type = character varying(50)
+      null = NOT NULL
+    }
+    column "email" {
+      type = character varying(255)
+      null = NOT NULL
+    }
+    column "created_on" {
+      type = timestamp without time zone
+      null = NOT NULL
+    }
+    column "last_login" {
+      type = timestamp without time zone
+    }
+  )
+}
+
+index "public"."accounts_email_key" {
+  table = "public"."accounts"
+  type = btree
+  columns = [
+    email
+  ]
+  isUnique = True
+}
+
+index "public"."accounts_username_key" {
+  table = "public"."accounts"
+  type = btree
+  columns = [
+    username
+  ]
+  isUnique = True
+}
+

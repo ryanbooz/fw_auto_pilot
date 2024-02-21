@@ -1,0 +1,31 @@
+table "public"."product_tags" {
+  primaryKey = {
+    columns = [
+      "product_id"
+      "tag_id"
+    ]
+    name = "product_tags_pkey"
+    objectType = primaryKey
+  }
+  columns = (
+    column "product_id" {
+      type = integer
+      null = NOT NULL
+    }
+    column "tag_id" {
+      type = integer
+      null = NOT NULL
+      default = nextval('public.product_tags_tag_id_seq'::regclass)
+    }
+    column "production_date" {
+      type = character varying(20)
+    }
+    column "tag_peni" {
+      type = character varying(20)
+    }
+    column "item_number" {
+      type = character varying(20)
+    }
+  )
+}
+

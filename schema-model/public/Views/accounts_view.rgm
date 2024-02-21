@@ -1,0 +1,16 @@
+view "public"."accounts_view" {
+  text = """-
+SELECT accounts.username,
+    accounts.password
+   FROM public.accounts;
+"""
+  columns = (
+    column "username" {
+      type = "character varying(50)"
+    }
+    column "password" {
+      type = "character varying(50)"
+    }
+  )
+}
+

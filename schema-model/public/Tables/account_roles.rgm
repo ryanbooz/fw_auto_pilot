@@ -1,0 +1,44 @@
+table "public"."account_roles" {
+  primaryKey = {
+    columns = [
+      "user_id"
+      "role_id"
+    ]
+    name = "account_roles_pkey"
+    objectType = primaryKey
+  }
+  columns = (
+    column "user_id" {
+      type = integer
+      null = NOT NULL
+    }
+    column "role_id" {
+      type = integer
+      null = NOT NULL
+    }
+    column "grant_date" {
+      type = timestamp without time zone
+    }
+  )
+}
+
+foreignKey "public"."account_roles"."account_roles_role_id_fkey" {
+  columns = [
+    "role_id"
+  ]
+  referencedTable = "public"."roles"
+  referencedColumns = [
+    "role_id"
+  ]
+}
+
+foreignKey "public"."account_roles"."account_roles_user_id_fkey" {
+  columns = [
+    "user_id"
+  ]
+  referencedTable = "public"."accounts"
+  referencedColumns = [
+    "user_id"
+  ]
+}
+

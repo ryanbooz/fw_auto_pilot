@@ -1,0 +1,30 @@
+table "public"."roles" {
+  primaryKey = {
+    columns = [
+      "role_id"
+    ]
+    name = "roles_pkey"
+    objectType = primaryKey
+  }
+  columns = (
+    column "role_id" {
+      type = integer
+      null = NOT NULL
+      default = nextval('public.roles_role_id_seq'::regclass)
+    }
+    column "role_name" {
+      type = character varying(255)
+      null = NOT NULL
+    }
+  )
+}
+
+index "public"."roles_role_name_key" {
+  table = "public"."roles"
+  type = btree
+  columns = [
+    role_name
+  ]
+  isUnique = True
+}
+

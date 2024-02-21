@@ -1,0 +1,14 @@
+table "public"."autopilot" {
+  columns = (
+    column "postgres" {
+      type = character varying
+    }
+    column "auto" {
+      type = character varying
+    }
+    column "pilot" {
+      type = character varying
+    }
+  )
+}
+
