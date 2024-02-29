@@ -17,9 +17,14 @@ env:
  
   FLYWAY_LICENSE_KEY: ${{ secrets.FLYWAY_LICENSE_KEY }} #Repository Secret - Create this within the Projects Settings > Secrects > Actions section
   # If the first undo script is U002, this will validate all undo scripts up to and including that
-  FIRST_UNDO_SCRIPT: "002.20240221213638"
+  FIRST_UNDO_SCRIPT: ${{ secrets.FIRST_UNDO_SCRIPT }}
   # Enable this for additional debug logging
   ACTIONS_RUNNER_DEBUG: true 
+
+  # JDBC connection string properties
+  JDBC_HOST: "localhost"
+  JDBC_PORT: "5432"
+  JDBC_URI: "jdbc:postgresql://$JDBC_URI:$JDBC_PORT/"
  
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -33,8 +38,7 @@ jobs:
       stage: 'Build'
       
       # Environment Secrets - In Real Ensure all of the below have been created as an Environment Secret (Projects Settings > Secrets > Actions section, specially related to the environment in question) #
-      databaseName: "widgetbuild"
-      JDBC: "jdbc:postgresql://localhost:5434/widgetbuild" 
+      JDBC: format('{1}{2}', $JDBC_URI, "widgetbuild")
 
       displayName: 'Build'
       executeBuild: true
@@ -49,19 +53,19 @@ jobs:
       - name: Clean Build DB
         if: env.executeBuild == 'true'
         run: |
-          flyway -baselineOnMigrate="true" -licenseKey="${{ env.FLYWAY_LICENSE_KEY }}" -locations="filesystem:${{ GITHUB.WORKSPACE }}\migrations" info clean info -url="${{ env.JDBC }}" -cleanDisabled="false" -reportFilename="Reports\CleanDB" -errorOverrides="S0001:0:I-" -user=${{ secrets.USER }} -password=${{ secrets.PASSWORD }}
+          flyway -baselineOnMigrate="true" -licenseKey="${{ secrets.FLYWAY_LICENSE_KEY }}" -locations="filesystem:${{ GITHUB.WORKSPACE }}\migrations" info clean info -url="${{ env.JDBC }}" -cleanDisabled="false" -reportFilename="Reports\CleanDB" -errorOverrides="S0001:0:I-" -user="${{ secrets.USER }}" -password="${{ secrets.PASSWORD }}"
         
       # Runs the Flyway Migrate command against the Build database
       - name: Migrate Build DB
         if: env.executeBuild == 'true'
         run: |
-          flyway -baselineOnMigrate="true" -licenseKey="${{ env.FLYWAY_LICENSE_KEY }}" -locations="filesystem:${{ GITHUB.WORKSPACE }}\migrations" info migrate info -url="${{ env.JDBC }}" -cleanDisabled="false" -reportFilename="Reports\ValidateVScripts" -errorOverrides="S0001:0:I-" -user=${{ secrets.USER }} -password=${{ secrets.PASSWORD }}
+          flyway -baselineOnMigrate="true" -licenseKey="${{ secrets.FLYWAY_LICENSE_KEY }}" -locations="filesystem:${{ GITHUB.WORKSPACE }}\migrations" info migrate info -url="${{ env.JDBC }}" -cleanDisabled="false" -reportFilename="Reports\ValidateVScripts" -errorOverrides="S0001:0:I-" -user="${{ secrets.USER }}" -password="${{ secrets.PASSWORD }}"
           
       # Runs the Flyway Undo command against the Build database
       - name: undo Build DB
         if: env.executeBuild == 'true'
         run: |
-          flyway -baselineOnMigrate="true" -licenseKey="${{ env.FLYWAY_LICENSE_KEY }}" -locations="filesystem:${{ GITHUB.WORKSPACE }}\migrations" info undo info -url="${{ env.JDBC }}" -cleanDisabled="false" -target="${{ env.FIRST_UNDO_SCRIPT }}" -reportFilename="Reports/ValidateUScripts" -errorOverrides="S0001:0:I-" -user=${{ secrets.USER }} -password=${{ secrets.PASSWORD }}
+          flyway -baselineOnMigrate="true" -licenseKey="${{ secrets.FLYWAY_LICENSE_KEY }}" -locations="filesystem:${{ GITHUB.WORKSPACE }}\migrations" info undo info -url="${{ env.JDBC }}" -cleanDisabled="false" -target="${{ env.FIRST_UNDO_SCRIPT }}" -reportFilename="Reports/ValidateUScripts" -errorOverrides="S0001:0:I-" -user="${{ secrets.USER }}" -password="${{ secrets.PASSWORD }}"
  
        # Create a directory to stage the artifact files
       - name: Stage files for publishing
@@ -88,10 +92,11 @@ jobs:
       env:
         stage: 'Prod'
         # For this example, we've hard coded the JDBC here, but you may wish to have them in your project TOML file or as Environment Secrets - (GitHub Settings > Secrets > Actions; specially related to the environment in question) #
-        databaseName: "widgetprod"
-        JDBC: "jdbc:postgresql://localhost:5434/widgetprod" 
+        #databaseName: "widgetprod"
+        JDBC: format('{1}{2}', $JDBC_URI, "widgetprod")
+        #JDBC: "jdbc:postgresql://localhost:5434/widgetprod" 
 
-        check_JDBC: "jdbc:postgresql://localhost:5434/widgetcheck" 
+        check_JDBC: format('{1}{2}', $JDBC_URI, "widgetcheck") 
         
         # End of Environment Secrets #
         generateDriftAndChangeReport: true
@@ -108,7 +113,7 @@ jobs:
         - name: Create Check Reports
           if: env.generateDriftAndChangeReport == 'true'
           run: |
-            flyway -baselineOnMigrate="true" -licenseKey="${{ env.FLYWAY_LICENSE_KEY }}" -locations="filesystem:${{ GITHUB.WORKSPACE }}\migrations" check -dryrun -changes -drift "-check.failOnDrift=${{ env.failReleaseIfDriftDetected }}" "-check.buildUrl=${{ env.check_JDBC }}" "-check.buildUser=${{ env.check_userName }}" "-check.buildPassword=${{ env.check_password }}" -url="${{ env.JDBC }}" "-check.reportFilename=${{ GITHUB.WORKSPACE }}\reports\${{ env.databaseName }}-Run-${{ GITHUB.RUN_ID }}-Check-Report.html" -errorOverrides="S0001:0:I-" -user=${{ secrets.USER }} -password=${{ secrets.PASSWORD }}
+            flyway -baselineOnMigrate="true" -licenseKey="${{ secrets.FLYWAY_LICENSE_KEY }}" -locations="filesystem:${{ GITHUB.WORKSPACE }}\migrations" check -dryrun -changes -drift "-check.failOnDrift=${{ env.failReleaseIfDriftDetected }}" "-check.buildUrl=${{ env.check_JDBC }}" "-check.buildUser=${{ secrets.USER }}" "-check.buildPassword=${{ secrets.PASSWORD }}" -url="${{ env.JDBC }}" -reportFilename="${{ GITHUB.WORKSPACE }}\reports\${{ env.databaseName }}-Run-${{ GITHUB.RUN_ID }}-Check-Report.html" -errorOverrides="S0001:0:I-" -user="${{ secrets.USER }}" -password="${{ secrets.PASSWORD }}"
           continue-on-error: true
  
          # Create a directory to stage the artifact files
@@ -133,8 +138,9 @@ jobs:
     needs: prod-preparation
     env:
       stage: 'Prod'
-      databaseName: "widgetprod"
-      JDBC: "jdbc:postgresql://localhost:5434/widgetprod" 
+      #databaseName: "widgetprod"
+      #JDBC: "jdbc:postgresql://localhost:5434/widgetprod" 
+      JDBC: format('{1}{2}', $JDBC_URI, "widgetprod")
       
       pauseForCodeReview: true
  
@@ -147,4 +153,4 @@ jobs:
       - name: Migrate Production DB
         if: ${{ true }}
         run: |
-          flyway -baselineOnMigrate="true" -licenseKey="${{ env.FLYWAY_LICENSE_KEY }}" -locations="filesystem:${{ GITHUB.WORKSPACE }}\migrations" info migrate info -url="${{ env.JDBC }}" -cleanDisabled="false" -errorOverrides="S0001:0:I-" -user=${{ secrets.USER }} -password=${{ secrets.PASSWORD }}
+          flyway -baselineOnMigrate="true" -licenseKey="${{ secrets.FLYWAY_LICENSE_KEY }}" -locations="filesystem:${{ GITHUB.WORKSPACE }}\migrations" info migrate info -url="${{ env.JDBC }}" -cleanDisabled="false" -errorOverrides="S0001:0:I-" -user=${{ secrets.USER }} -password=${{ secrets.PASSWORD }}

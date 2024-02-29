@@ -31,7 +31,7 @@ FROM widgets w
 
 
 CREATE OR REPLACE FUNCTION public.get_all_widgets()
-RETURNS SETOF widgets
+RETURNS TABLE (record_id int, description text)
 AS 
 $$
 	SELECT record_id,
@@ -39,5 +39,3 @@ $$
 	FROM widgets
 $$
 LANGUAGE 'sql';
-
-

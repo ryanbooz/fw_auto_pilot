@@ -11,12 +11,11 @@ CREATE FUNCTION public.get_all_widgets()
 RETURNS TABLE(record_id integer, description text, price real)
 LANGUAGE sql
 AS $_$
-	SELECT w.record_id,
+	SELECT record_id,
            w.description,
            wp.price
-	FROM widgets w INNER JOIN widget_prices wp 
-	ON wp.record_id = w.record_id
-
+	FROM widgets w 
+	INNER JOIN widget_prices wp using(record_id)
 $_$;
 ALTER FUNCTION public.get_all_widgets() OWNER TO postgres;
 
