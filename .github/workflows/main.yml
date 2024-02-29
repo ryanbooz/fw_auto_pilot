@@ -22,9 +22,8 @@ env:
   ACTIONS_RUNNER_DEBUG: true 
 
   # JDBC connection string properties
-  JDBC_HOST: "localhost"
-  JDBC_PORT: "5432"
-  JDBC_URI: "jdbc:postgresql://$JDBC_URI:$JDBC_PORT/"
+  JDBC_HOST: ${{ secrets.DB_HOST }}
+  JDBC_PORT: ${{ secrets.DB_PORT }}
  
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -38,8 +37,7 @@ jobs:
       stage: 'Build'
       
       # Environment Secrets - In Real Ensure all of the below have been created as an Environment Secret (Projects Settings > Secrets > Actions section, specially related to the environment in question) #
-      JDBC: format('{1}{2}', $JDBC_URI, "widgetbuild")
-
+      databasename: "widgetbuild"
       displayName: 'Build'
       executeBuild: true
       publishArtifacts: true
@@ -48,7 +46,11 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
-      
+
+      - name: Set Environment vars
+        run: |
+          echo "JDBC=jdbc:postgresql://${{ env.JDBC_HOST }}:${{ env.JDBC_PORT }}/${{ env.databasename }}" >> $Env:GITHUB_ENV
+
       # Runs the Flyway Clean command against the Build database
       - name: Clean Build DB
         if: env.executeBuild == 'true'
@@ -92,11 +94,8 @@ jobs:
       env:
         stage: 'Prod'
         # For this example, we've hard coded the JDBC here, but you may wish to have them in your project TOML file or as Environment Secrets - (GitHub Settings > Secrets > Actions; specially related to the environment in question) #
-        #databaseName: "widgetprod"
-        JDBC: format('{1}{2}', $JDBC_URI, "widgetprod")
-        #JDBC: "jdbc:postgresql://localhost:5434/widgetprod" 
-
-        check_JDBC: format('{1}{2}', $JDBC_URI, "widgetcheck") 
+        databasename_prod: "widgetprod"
+        databasename_check: "widgetcheck"
         
         # End of Environment Secrets #
         generateDriftAndChangeReport: true
@@ -108,12 +107,18 @@ jobs:
       steps:
         # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
         - uses: actions/checkout@v3
-          
+
+        - name: Set JDBC string
+          run: echo "JDBC=jdbc:postgresql://${{ env.JDBC_HOST }}:${{ env.JDBC_PORT }}/${{ env.databasename_prod }}" >> $Env:GITHUB_ENV        
+
+        - name: Set check JDBC string
+          run: echo "CHECK_JDBC=jdbc:postgresql://${{ env.JDBC_HOST }}:${{ env.JDBC_PORT }}/${{ env.databasename_check }}" >> $Env:GITHUB_ENV        
+
         # Runs the Flyway Check command, to produce a deployment report, against the Production database
         - name: Create Check Reports
           if: env.generateDriftAndChangeReport == 'true'
           run: |
-            flyway -baselineOnMigrate="true" -licenseKey="${{ secrets.FLYWAY_LICENSE_KEY }}" -locations="filesystem:${{ GITHUB.WORKSPACE }}\migrations" check -dryrun -changes -drift "-check.failOnDrift=${{ env.failReleaseIfDriftDetected }}" "-check.buildUrl=${{ env.check_JDBC }}" "-check.buildUser=${{ secrets.USER }}" "-check.buildPassword=${{ secrets.PASSWORD }}" -url="${{ env.JDBC }}" -reportFilename="${{ GITHUB.WORKSPACE }}\reports\${{ env.databaseName }}-Run-${{ GITHUB.RUN_ID }}-Check-Report.html" -errorOverrides="S0001:0:I-" -user="${{ secrets.USER }}" -password="${{ secrets.PASSWORD }}"
+            flyway -baselineOnMigrate="true" -licenseKey="${{ secrets.FLYWAY_LICENSE_KEY }}" -locations="filesystem:${{ GITHUB.WORKSPACE }}\migrations" check -dryrun -changes -drift "-check.failOnDrift=${{ env.failReleaseIfDriftDetected }}" "-check.buildUrl=${{ env.CHECK_JDBC }}" "-check.buildUser=${{ secrets.USER }}" "-check.buildPassword=${{ secrets.PASSWORD }}" -url="${{ env.JDBC }}" -reportFilename="${{ GITHUB.WORKSPACE }}\reports\${{ env.databaseName }}-Run-${{ GITHUB.RUN_ID }}-Check-Report.html" -errorOverrides="S0001:0:I-" -user="${{ secrets.USER }}" -password="${{ secrets.PASSWORD }}"
           continue-on-error: true
  
          # Create a directory to stage the artifact files
@@ -138,9 +143,7 @@ jobs:
     needs: prod-preparation
     env:
       stage: 'Prod'
-      #databaseName: "widgetprod"
-      #JDBC: "jdbc:postgresql://localhost:5434/widgetprod" 
-      JDBC: format('{1}{2}', $JDBC_URI, "widgetprod")
+      databasename_prod: "widgetprod"
       
       pauseForCodeReview: true
  
@@ -148,6 +151,9 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
+
+      - name: Set JDBC string
+        run: echo "JDBC=jdbc:postgresql://${{ env.JDBC_HOST }}:${{ env.JDBC_PORT }}/${{ env.databasename_prod }}" >> $Env:GITHUB_ENV
         
       # Runs the Flyway Migrate against the Production database
       - name: Migrate Production DB
