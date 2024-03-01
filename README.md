@@ -54,6 +54,19 @@ The included `main.yaml` action pipeline requires a few secrets to be set. In Gi
 **GitHub Secrets Location**
 ![GitHub Action secrets and variables](gh_settings_secrets.png)
 
+### Step 6: Configure a GitHub Actions runner on your development machine
+1. In GitHub, goto `Settings -> Actions -> Runners`.  
+2. Click the "New self-hosted runner" button.
+
+![New self-hosted GitHub actions runner](gh_action_runner.png)
+
+3. Follow the instructions for setting up your self-hosted runner on your Operating System. The images below illustrate how to install the runner using Powershell on Windows. MacOS and Linux will have different commands.
+
+![Commands from GitHub settings to install an action runner locally](gh_action_runner_install_cmd.png)
+
+(Using the commands to install via Powershell)
+![GitHub action runner install](gh_action_runner_install.png)
+
 
 You're now ready to follow the rest of the Quickstart, which includes setting up a local GitHub Actions runner to see the CI/CD pipeline work with your local databases.
 
